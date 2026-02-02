@@ -1,19 +1,19 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 
 # 1. Page Config for Mobile
 st.set_page_config(page_title="My AI App", page_icon="🤖", layout="centered")
 
-# 2. Setup API Key (This will be pulled from Streamlit's secret settings later)
+# 2. Setup the NEW Client
 try:
-    API_KEY = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=API_KEY)
-except:
-    st.error("Please set the GEMINI_API_KEY in Streamlit Secrets.")
+    # In Streamlit Secrets, ensure you have GEMINI_API_KEY = "your_key"
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+except Exception as e:
+    st.error(f"Setup Error: {e}")
 
-# 3. Simple UI
-st.title("📱 My Mobile AI")
-st.caption("Powered by Gemini 1.5 Flash")
+# 3. Simple Chat UI
+st.title("📱 My Mobile AI (2026)")
+st.caption("Powered by Gemini 2.5 Flash")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -23,15 +23,17 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Chat Input (stays at bottom on mobile)
+# Chat Input
 if prompt := st.chat_input("How can I help?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        model = genai.GenerativeModel('gemini-3-flash-preview')
-        response = model.generate_content(prompt)
+        # The new 2026 way to call the model
+        response = client.models.generate_content(
+            model="gemini-2.5-flash", 
+            contents=prompt
+        )
         st.markdown(response.text)
-
         st.session_state.messages.append({"role": "assistant", "content": response.text})
